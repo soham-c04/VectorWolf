@@ -55,7 +55,7 @@ Parameters:-
 ### print(model)
 **returns** -> `void`.
 
-Prints - [print(layer[i])](https://github.com/soham-c04/VectorWolf/edit/main/README.md#printlayer) for all layers.
+Prints - [print(layer[i])](https://github.com/soham-c04/VectorWolf/tree/main?tab=readme-ov-file#printlayer) for all layers.
 
 Parameters:-
 - `model`: class Model to be printed (necessary).
