@@ -2,6 +2,11 @@
 **VectorWolf is (Tensor => Vector) + (reverse(Flow) => Wolf)**
 
 Syntax is almost the same as TensorFlow.
+### How to use
+- Write your code in main.cpp
+- Enter `./run.sh` command in linux based terminal to run the code, or run the same script replacing `-o main` with `-o main.exe` for Powershell. 
+- main.cpp is given as an example to demonstrate its usage.
+- Ensure that VectorWolf.cpp, VectorWolf.h and main.cpp are in the same directory.
 
 ## Methods for Layer -
 ### layers.Dense()
@@ -61,3 +66,10 @@ Prints - [print(layer[i])](https://github.com/soham-c04/VectorWolf/tree/main?tab
 
 Parameters:-
 - `model`: class Model to be printed (necessary).
+
+## Important Points
+- Losses in BinaryCrossentropy printed here are generally lower even for the same set of weights and biases, because of inaccurate calculations due to capping at eps = 1e-15. To prevent runtime errors. For e.g. this results in $-log(e^{-18})$ to become $-log(e^{-15})$, hence value changes from 18 to 15.
+- To change data type for calculation go to VectorWolf.h and change - ```using D = double``` to desired data_type.
+- Running on Windows Powershell is faster than running on WSL + Ubuntu. 
+
+
