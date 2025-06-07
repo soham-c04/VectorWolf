@@ -11,10 +11,8 @@ Data from source - https://github.com/HoomKh/Coffee-Roasting-Deeplearning/blob/m
 */
 
 int main(){
-	vector<vector<D>> X = read_csv("D:/Kaggle/CoffeeRoasting/input.csv");	// Windows PowerShell
-	X = read_csv("/mnt/d/Kaggle/CoffeeRoasting/input.csv");          		// WSL
-	vector<vector<D>> Y = read_csv("D:/Kaggle/CoffeeRoasting/output.csv");  // Windows PowerShell
-	Y = read_csv("/mnt/d/Kaggle/CoffeeRoasting/output.csv");  				// WSL
+	vector<vector<D>> X = read_csv("Kaggle/CoffeeRoasting/input.csv");
+	vector<vector<D>> Y = read_csv("Kaggle/CoffeeRoasting/output.csv");
 	shape(X);
 	shape(Y);
 	int m = X.size();
