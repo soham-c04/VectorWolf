@@ -1,5 +1,6 @@
 #include "VectorWolf.h"
-#include <bits/stdc++.h>
+
+#include <iomanip>
 using namespace std;
 
 /*
