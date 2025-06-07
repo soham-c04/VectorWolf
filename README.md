@@ -26,7 +26,7 @@ Parameters:-
 
 Parameters:-
 -  `input_param`: No. of features in input of training data (necessary).
--  `vector<Layer>`: Vector of layers inputted in the form ```{ layers.Dense(units = ..., activation = "...", name = "..."), ... }``` (necessary).
+-  `vector<Layer>`: Vector of layers inputed in the form ```{ layers.Dense(units = ..., activation = "...", name = "..."), ... }``` (necessary).
 ### model.summary()
 **returns** -> `void`.
 
