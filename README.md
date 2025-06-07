@@ -1,6 +1,8 @@
 # VectorWolf
 **VectorWolf is (Tensor => Vector) + (reverse(Flow) => Wolf)**
 
+Syntax is almost the same as TensorFlow.
+
 ## Methods for Layer -
 ### layers.Dense()
 **returns** -> `class Layer`
