@@ -222,5 +222,6 @@ Syntax is almost the same as TensorFlow.
 - To change data type for calculation go to VectorWolf.h and change - ```using D = double``` to desired data_type.
 - Running on Windows Powershell is faster than running on WSL + Ubuntu.
 - The dimensions of weight matrix is transpose of what is used on TensorFlow.
+- Go [here](https://github.com/soham-c04/VectorWolf/tree/main/images) for images about Running and Output.
 
 
