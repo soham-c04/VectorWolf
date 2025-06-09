@@ -33,9 +33,11 @@ int main(){
 	Model model=keras.Sequential(
 		input_param = 2,
 		{
-		layers.Dense(2, activation="linear"),
+		layers.Dense(2, activation="linear", name = "Layer1"),
 		layers.Dense(2, activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
+        layers.Dense(1, activation="sigmoid", name = "Layer3"),
+        layers.Dense(-1),
+        layers.Dense(0,"ReLu")
 		}
 	);
 
@@ -82,6 +84,17 @@ int main(){
 	);
 
 	print(model);
+	
+	vector<D> Y_predict = model.predict(Xt);
+	
+	m = Yt.size();
+	D accuracy = 0;
+	for(int i=0;i<m;i++)
+		if((Y_predict[i] >= 0.5) == Yt[i])
+			accuracy += 100;
+			
+	accuracy /= m;
+	cout << "\nAccuracy: "<< accuracy << endl << endl;
 
 	return 0;
 }

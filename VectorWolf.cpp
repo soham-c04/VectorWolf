@@ -1,17 +1,8 @@
 #include "VectorWolf.h"
-#include <iostream>
-#include <vector>
 #include <math.h>
 #include <fstream>
 #include <sstream>
-#include <functional>
-#include <random>
 using namespace std;
-
-// long double -- precision of 15-33 decimal places -- But Slower -- 8 to 16 bytes
-// double -- precision upto 15 decimal places -- Medium -- 8 bytes
-// float -- precision upto 6 decimal places -- Relatively fast -- 4 bytes
-using D = double; // Change it to: using D = data_type;
 
 string lower_case(const string &s){
 	string low="";
@@ -20,12 +11,40 @@ string lower_case(const string &s){
 }
 
 void print(const vector<D> &vec){
-	for(D a:vec) cout<<a<<" ";
-	cout<<endl;
+	string line = "      ";
+	for(D a:vec) line += to_string(a) + ' ';
+	print(line);
 }
 
 void print(const vector<vector<D>> &vec){
 	for(vector<D> v:vec) print(v);
+}
+
+void print(string &line, int width){
+	int l = line.size();
+	cout<<VERT<<"  "<<line;
+	for(int p=0;p<width-l-2;p++) cout<<" ";
+	cout<<VERT<<"\n";
+	line.clear();
+}
+
+void print_top(int width){
+	cout<<TOP_LEFT;
+	for(int c=0;c<width;c++) cout<<HORIZ;
+	cout<<TOP_RIGHT<<"\n";
+}
+
+void print_bottom(int width){
+	cout<<BOTTOM_LEFT;
+	for(int c=0;c<width;c++) cout<<HORIZ;
+	cout<<BOTTOM_RIGHT<<endl;
+}
+
+void print_header(string line){
+	int l = line.size();
+	print_top(l + 4);
+	print(line,l + 4);
+	print_bottom(l + 4);
 }
 
 void shape(vector<vector<D>> &M){
@@ -213,7 +232,7 @@ Layer Layer::Dense(int units__, string activation__, string name__){
 	return Layer(units__,activation__,name__,"Dense");
 }
 
-vector<vector<D>>& Layer::operator()(vector<vector<D>> &x, bool z_store){
+vector<vector<D>> Layer::operator()(vector<vector<D>> &x, bool z_store){
 	// Randomly initialize weights if layer not yet 
 	int n=x.size(),m=x[0].size();
 	if(weight.empty()){
@@ -221,7 +240,7 @@ vector<vector<D>>& Layer::operator()(vector<vector<D>> &x, bool z_store){
 		bias.resize(units_);
 	}
 
-	output = multiply(weight,x);
+	vector<vector<D>> output = multiply(weight,x);
 	if(z_store) z = output;
 	for(int i=0;i<units_;i++){
 		for(int j=0;j<m;j++){
@@ -254,9 +273,8 @@ void Layer::update_bias(vector<D> &dJ_db){
 }
 
 int Layer::info(int prev_units){
-	int m = 0;
-	if(output.size()) m = output[0].size();
-	cout<<name_<<" ("<<type<<")       ("<<m<<","<<units_<<")          "<<units_*(1+prev_units)<<endl;
+	string line = name_ + '(' + type + ")       (," + to_string(units_) + ")          " + to_string(units_*(1+prev_units));
+	print(line);
 	return units_*(1+prev_units);
 }
 
@@ -270,10 +288,6 @@ void Layer::set_name(const string name__){
 
 int Layer::get_units(){
 	return units_;
-}
-
-void Layer::set_units(int units__){
-	units_ = units__;
 }
 
 vector<vector<D>> Layer::get_weights(){
@@ -292,10 +306,6 @@ void Layer::set_bias(vector<D> new_bias){
 	swap(bias,new_bias);
 }
 
-vector<vector<D>> Layer::get_output(){
-	return output;
-}
-
 Layer layers;
 
 // class Model
@@ -303,36 +313,75 @@ Layer layers;
 Model::Model():layers(),Learning_rate(0),input_features(0){};
 		
 void Model::add(Layer new_layer){
+	
 	if(new_layer.get_units()>0) layers.push_back(new_layer);
-	else cout<<"\nLayer should have at least 1 unit.\n";
+	else{
+		string line = "Layer should have at least 1 unit.";
+		print(line);
+	}
 }
 
-// Keyword for model.Sequential()
+// Keyword arguments for model.Sequential()
 
 int input_param = 0;
 
 Model Model::Sequential(int input_features_, vector<Layer> layers_){
+	cout<<endl;
+	
+	string line;
+
+	// Box for keras.summary()
+	print_header("keras.Sequential()");
+	
+	// Box for output of keras.Sequential()
+	print_top();
+	
 	Model my_model;
 	if(input_param > 0) input_features_ = input_param;
-	input_param = 0;
 	if(input_features_ > 0) my_model.set_features(input_features_);
 	for(Layer &my_layer:layers_) my_model.add(my_layer);
+	input_param = 0;
+	
+	print_bottom();
+	cout<<endl;
 	return my_model;
 }
 
 void Model::summary(){
 	cout<<endl;
-	for(int i=0;i<print_width;i++) cout<<"-"; cout<<endl;
-	cout<<"Layer   (type)     Output Shape    Param #"<<endl;
-	for(int i=0;i<print_width;i++) cout<<"="; cout<<endl;
+
+	string line;
+	
+	// Box for model.summary()
+	print_header("model.summary()");
+	
+	// Box for output of model.summary()
+	print_top();
+	
+	
+	for(int i=0;i<print_width;i++) line.push_back('-');
+	print(line);
+	
+	line = "Layer   (type)     Output Shape    Param #";
+	print(line);
+	
+	for(int i=0;i<print_width;i++) line.push_back('=');
+	print(line);
 
 	int total_params=0;
 	total_params+=layers[0].info(input_features);
 	for(int i=1;i<layers.size();i++) total_params+=layers[i].info(layers[i-1].get_units());
-	for(int i=0;i<print_width;i++) cout<<"="; cout<<endl;
+	for(int i=0;i<print_width;i++) line.push_back('=');
+	print(line);
+
+	line = "Total Parameters: " + to_string(total_params);
+	print(line);
 	
-	cout<<"Total Parameters: "<<total_params<<endl;
-	for(int i=0;i<print_width;i++) cout<<"-"; cout<<endl;
+	for(int i=0;i<print_width;i++) line.push_back('-');
+	print(line);
+
+	print_bottom();
+	cout<<endl;
 }
 
 // Keyword arguments for model.compile()
@@ -355,12 +404,26 @@ void reset_fit(){   // Resets global variable values
 }
 
 vector<D> Model::predict(const vector<vector<D>> x){
+	cout<<endl;
+	
+	// Box for model.predict()
+	print_header("model.predict()");
+
+	// Box for output of model.predict()
+	print_top();
+
 	vector<vector<D>> output = x;
 	if(x[0].size()==input_features){
 		output = transpose(output);
 		for(Layer &cur_layer:layers) output = cur_layer(output);
 	}
-	else cout<<"\nNo. of input features should be - "<<input_features<<"."<<endl;
+	else{
+		string line = "No. of input features should be - " + to_string(input_features) + '.';
+		print(line);
+	}
+
+	print_bottom();
+	cout<<endl;
 	return output[0];
 }
 
@@ -373,7 +436,20 @@ Layer& Model::get_layer(string name_){
 	
 	for(Layer &l:layers)
 		if(l.get_name() == name_) return l;
-	cout<<"\nLayer not found."<<endl;
+
+	cout<<endl;
+
+	// Box for model.get_layer()
+	print_header("model.get_layer()");
+
+	// Box for output of model.get_layer()
+	print_top();
+
+	string line = "Layer not found.";
+	print(line);
+	
+	print_bottom();
+	cout<<endl;
 }
 
 vector<Layer> Model::get_layers(){
@@ -383,17 +459,53 @@ vector<Layer> Model::get_layers(){
 Model keras;
 
 void print(Layer &l){
-	cout<<"\nLayer name: "<<l.get_name();
-	cout<<"\n\nUnits: "<<l.get_units();
-	cout<<"\n\nWeights: \n";
+	// Box for Header as layer name
+	string header = "";
+	header = header + VERT + "  Layer name: " + l.get_name() + "  " + VERT;
+	int w = header.size();
+	
+	string line = "";
+	line = line + TOP_LEFT;
+	for(int p=0;p<w-2;p++) line.push_back(HORIZ);
+	line += TOP_RIGHT;
+	print(line);
+	
+	print(header);
+	
+	line = "";
+	line = line + BOTTOM_LEFT;
+	for(int p=0;p<w-2;p++) line.push_back(HORIZ);
+	line += BOTTOM_RIGHT;
+	print(line);
+	
+	// Box for details of layer
+	line = "Units: " + to_string(l.get_units());
+	print(line);
+	
+	line = "Weights: ";
+	print(line);
 	print(l.get_weights());
-	cout<<"\nBias: ";
+	
+	line = "Bias: ";
+	print(line);
 	print(l.get_bias());
+	print(line = ""); print(line = "");
 }
 
 void print(Model &m){
+	cout<<endl;
+	
+	// Box for print(model)
+	print_header("print(model)");
+
+	// Box for output of print(model)
+	print_top();
+
 	vector<Layer> layers = m.get_layers();
 	for(Layer &l:layers) print(l);
+	
+	print_bottom();
+	cout<<endl;
 }
 
 vector<vector<D>> read_csv(const string path){

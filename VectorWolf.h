@@ -1,17 +1,34 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <functional>
 #include <chrono>
 #include <random>
 using namespace std;
 
+// For printing boxes
+#define VERT         (char)186
+#define HORIZ        (char)205
+#define TOP_LEFT     (char)201
+#define TOP_RIGHT    (char)187
+#define BOTTOM_LEFT  (char)200
+#define BOTTOM_RIGHT (char)188
+#define SCREEN_WIDTH 130
+
+// long double -- precision of 15-33 decimal places -- But Slower -- 8 to 16 bytes
+// double -- precision upto 15 decimal places -- Medium -- 8 bytes
+// float -- precision upto 6 decimal places -- Relatively fast -- 4 bytes
 using D = double;
 
 string lower_case(const string &s);
 
 void print(const vector<D> &vec);
 void print(const vector<vector<D>> &vec);
+void print(string &line, int width = SCREEN_WIDTH);
+void print_top(int width = SCREEN_WIDTH);
+void print_bottom(int width = SCREEN_WIDTH);
+void print_header(string line);
 
 void shape(vector<vector<D>> &M);
 
@@ -56,7 +73,6 @@ class Layer : Activation{
 		vector<vector<D>> weight;		  // Set of weights in a single layer
 		vector<D> bias;	  				  // Bias for a single layer
 		vector<vector<D>> z;              // z[l] = w[l]*a[l-1] + b[l]
-		vector<vector<D>> output;         // Output matrix after passing through current layer;
 
 	public:
 		string activation_name;           // Name of activation function
@@ -67,7 +83,7 @@ class Layer : Activation{
 
 		Layer Dense(int units__, string activation__="", string name__="");
 
-		vector<vector<D>>& operator()(vector<vector<D>> &x,bool z_store = false);
+		vector<vector<D>> operator()(vector<vector<D>> &x,bool z_store = false);
 
 		void element_wise_product(vector<vector<D>> &dJ_dz);
 
@@ -83,8 +99,6 @@ class Layer : Activation{
 
 		int get_units();
 
-		void set_units(int units__);
-
 		vector<vector<D>> get_weights();
 
 		void set_weights(vector<vector<D>> new_weight);
@@ -92,9 +106,6 @@ class Layer : Activation{
 		vector<D> get_bias();
 
 		void set_bias(vector<D> new_bias);
-
-		vector<vector<D>> get_output();
-		
 };
 
 extern Layer layers;
@@ -141,6 +152,14 @@ class Model : Loss{
 
 		template<typename... Args>
 		void compile(Args&&...){
+			cout<<endl;
+			
+			// Box for model.compile()
+			print_header("model.compile()");
+
+			// Box for output of model.compile()
+			print_top();
+			
 			loss_name = lower_case(loss);
 			Learning_rate = learning_rate;
 
@@ -153,10 +172,15 @@ class Model : Loss{
 				loss_func = BinaryCrossentropy;
 			}
 			else{
-				cout<<"\nDefault loss function - MeanSquaredError will be used."<<endl;
+				string line = "Default loss function - MeanSquaredError will be used.";
+				print(line);
+				
 				loss_name = "MeanSquaredError";
 				loss_func = MeanSquaredError;
 			}
+			
+			print_bottom();
+			cout<<endl;
 
 			loss = "";
 			learning_rate = 0;
@@ -164,21 +188,42 @@ class Model : Loss{
 
 		template<typename... Args>
 		void fit(vector<vector<D>> &x_train, vector<D> &y_train, Args&&...){
+			cout<<endl;
+			
+			string line;
+
+			// Box for model.fit()
+			print_header("model.fit()");
+
+			// Box for output of model.fit()
+			print_top();
+			
 			if(batch_size <= 0) batch_size = 32; 	// Default value
 			if(steps_per_epoch <= 0) steps_per_epoch = (x_train.size() + batch_size - 1)/batch_size; // Default value
 
 			if(x_train.size() != y_train.size()){
-				cout<<"\nNo. of samples in input and output matrix are different."<<endl;
+				line = "No. of samples in input and output matrix are different.";
+				print(line);
+				print_bottom();
+				cout<<endl;
 				reset_fit();
 				return;
 			}
 			else if(layers.back().get_units() != 1){
-				cout<<"\nLast layer of the model has to contain 1 unit only."<<endl;
+				line = "Last layer of the model has to contain 1 unit only.";
+				print(line);
+				print_bottom();
+				cout<<endl;
 				reset_fit();
 				return;
 			}
 			else if(input_features != x_train[0].size()){
-				printf("\nExpected dimension - (,%d) \nFound - (,%d).",input_features,(int)x_train[0].size()); cout<<endl;
+				line = "Expected dimension - (," + to_string(input_features) + ",)";
+				print(line);
+				line = "Found - (," + to_string(x_train[0].size()) + ",)";
+				print(line);
+				print_bottom();
+				cout<<endl;
 				reset_fit();
 				return;
 			}
@@ -187,7 +232,9 @@ class Model : Loss{
 			int l = layers.size();			// No. of layers
 			int m = y_train.size();         // No. of samples/inputs
 
-			cout<<"\nSteps per epoch:-  "<<steps_per_epoch<<endl<<endl;
+			line = "Steps per epoch:-  " + to_string(steps_per_epoch);
+			print(line);
+			print(line = "");
 
 			random_device rd;
 		    mt19937 g(rd());
@@ -251,7 +298,7 @@ class Model : Loss{
 							dJ_db.push_back(sum);
 						}
 
-						// Recursively find dJ_dz[i] for dJ_dz[i+1]
+						// Recursively find dJ_dz[i] from dJ_dz[i+1]
 						if(i){
 							vector<vector<D>> weight_T = layers[i].get_weights();
 							weight_T = transpose(weight_T);
@@ -269,15 +316,18 @@ class Model : Loss{
 				cur_loss /= steps_per_epoch;
 				
 			    auto t2=chrono::high_resolution_clock::now();
-				cout << "Epochs = " << ep << "/" << epochs << "		 Loss = " << cur_loss<< "	Time for epoch = "
-					 << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms " << endl;
+				line = "Epochs = " + to_string(ep) + "/" + to_string(epochs) + "          Loss = " + to_string(cur_loss) +  "         Time for epoch = "
+					 + to_string(chrono::duration_cast<chrono::milliseconds>(t2 - t1).count()) + " ms ";
+				print(line);
 			}
 
+			print_bottom();
+			cout<<endl;
 			reset_fit();
 		}
 
 		vector<D> predict(const vector<vector<D>> x);
-
+		
 		void set_features(int input_features_);
 
 		Layer& get_layer(string name_);
