@@ -3,9 +3,11 @@
 
 Syntax is almost the same as TensorFlow.
 
+Faster than TensorFlow for smaller batch sizes.
+
 ### How to use
 - Write your code in main.cpp
-- Enter `./run.sh` command in linux based terminal to run the code, or run the same script replacing `-o main` with `-o main.exe` for Powershell. 
+- Enter `./run.sh` command in linux based terminal to run the code, or use `./run.ps1` for Windows Powershell.
 - main.cpp is given as an example to demonstrate its usage.
 - Ensure that VectorWolf.cpp, VectorWolf.h and main.cpp are in the same directory.
 
@@ -140,8 +142,8 @@ Syntax is almost the same as TensorFlow.
   - `x_train`: Input for training data (necessary).
   - `y_train`: Ouput for given data (necessary).
   - `epochs`: No. of epochs (set to **0** i.e. nothing happens by default) (optional).
-  - `batch_size`: Input data divided into subsets (set to **32** by default) (If $\text{batch_ size} \nmid |\text{x_train}|$, it warps around from start to compensate) (optional).
-  - `steps_per_epoch`: No. of steps per epoch (set to $\left\lceil \frac{|{\text{x_train}}|}{\text{batch_size}} \right\rceil$ by default) (optional).
+  - `batch_size`: Input data divided into subsets (set to **32** by default) (If **$\text{batch\\_size} \nmid \text{|x\\_train|}$**, it warps around from start to compensate) (optional).
+  - `steps_per_epoch`: No. of steps per epoch (set to **$\left\lceil \frac{|{x\\_train}|}{batch\\_size} \right\rceil$** by default) (optional).
   - `Shuffle`: Training data will be randomly shuffled before each epoch (set to **true** by default) (optional).
 
 ### 6. model.predict();
