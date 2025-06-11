@@ -1,8 +1,10 @@
+#pragma GCC optimize("O3")
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <functional>
+#include <iomanip>
 #include <chrono>
 #include <random>
 using namespace std;
@@ -40,7 +42,7 @@ class Activation{
 		static D linear(const D &t);
 		static D ReLu(const D &t);
 		static D sigmoid(const D &t);
-		
+
 		static D deriv_linear(const D &t);
 		static D deriv_ReLu(const D &t);
 		static D deriv_sigmoid(const D &t);
@@ -102,7 +104,7 @@ class Layer : Activation{
 		vector<vector<D>> get_weights();
 
 		void set_weights(vector<vector<D>> new_weight);
-		
+
 		vector<D> get_bias();
 
 		void set_bias(vector<D> new_bias);
@@ -153,13 +155,13 @@ class Model : Loss{
 		template<typename... Args>
 		void compile(Args&&...){
 			cout<<endl;
-			
+
 			// Box for model.compile()
 			print_header("model.compile()");
 
 			// Box for output of model.compile()
 			print_top();
-			
+
 			loss_name = lower_case(loss);
 			Learning_rate = learning_rate;
 
@@ -174,11 +176,11 @@ class Model : Loss{
 			else{
 				string line = "Default loss function - MeanSquaredError will be used.";
 				print(line);
-				
+
 				loss_name = "MeanSquaredError";
 				loss_func = MeanSquaredError;
 			}
-			
+
 			print_bottom();
 			cout<<endl;
 
@@ -189,7 +191,7 @@ class Model : Loss{
 		template<typename... Args>
 		void fit(vector<vector<D>> &x_train, vector<D> &y_train, Args&&...){
 			cout<<endl;
-			
+
 			string line;
 
 			// Box for model.fit()
@@ -197,7 +199,7 @@ class Model : Loss{
 
 			// Box for output of model.fit()
 			print_top();
-			
+
 			if(batch_size <= 0) batch_size = 32; 	// Default value
 			if(steps_per_epoch <= 0) steps_per_epoch = (x_train.size() + batch_size - 1)/batch_size; // Default value
 
@@ -241,6 +243,8 @@ class Model : Loss{
 			int permutation[m];
 			for(int i=0;i<m;i++) permutation[i] = i;
 
+			auto start_time=chrono::high_resolution_clock::now();
+
 			for(int ep=1;ep<=epochs;ep++){
 				// Generate a random permutation
 			    if(Shuffle) shuffle(permutation,permutation+m,g);
@@ -261,15 +265,15 @@ class Model : Loss{
 						a[0].push_back(x_train[ind]);
 						Yt[i]=y_train[ind];
 					}
-					
+
 					a[0] = transpose(a[0]);
-					
+
 					// Finding output for all layers
 					for(int i=0;i<l;i++)
 						a[i+1]=layers[i](a[i],true);
 
 					vector<D> a_l = a[l][0];
-					
+
 					// Loss after each step
 					cur_loss += loss_func(Yt,a_l);
 
@@ -285,7 +289,10 @@ class Model : Loss{
 							;
 						}
 					}
-					else if(loss_name == "MeanSquaredError") layers[l-1].element_wise_product(dJ_dz);
+					else if(loss_name == "MeanSquaredError"){
+						for(D &x: dJ_dz[0]) x *= 2;
+						layers[l-1].element_wise_product(dJ_dz);
+					}
 
 					// Backprop derivative calculation
 					for(int i=l-1;i>=0;i--){
@@ -305,21 +312,26 @@ class Model : Loss{
 							dJ_dz = multiply(weight_T,dJ_dz);
 							layers[i-1].element_wise_product(dJ_dz);
 						}
-						
+
 						layers[i].update_weights(dJ_dw);
 						layers[i].update_bias(dJ_db);
 
 					}
 
 				}
-				
+
 				cur_loss /= steps_per_epoch;
-				
+
 			    auto t2=chrono::high_resolution_clock::now();
 				line = "Epochs = " + to_string(ep) + "/" + to_string(epochs) + "          Loss = " + to_string(cur_loss) +  "         Time for epoch = "
 					 + to_string(chrono::duration_cast<chrono::milliseconds>(t2 - t1).count()) + " ms ";
 				print(line);
 			}
+
+			print(line = "");
+			auto end_time=chrono::high_resolution_clock::now();
+			line = "Total time = " + to_string(chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count()) + " ms ";
+			print(line);
 
 			print_bottom();
 			cout<<endl;
@@ -327,7 +339,7 @@ class Model : Loss{
 		}
 
 		vector<D> predict(const vector<vector<D>> x);
-		
+
 		void set_features(int input_features_);
 
 		Layer& get_layer(string name_);

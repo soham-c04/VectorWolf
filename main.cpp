@@ -1,6 +1,4 @@
 #include "VectorWolf.h"
-
-#include <iomanip>
 using namespace std;
 
 /*
@@ -62,7 +60,6 @@ int main(){
 		b3 = {31.0};
 
 	// Update weights to set value
-	
 	model.get_layer("Layer1").set_weights(transpose(W1));
 	model.get_layer("Layer2").set_weights(transpose(W2));
 	model.get_layer("Layer3").set_weights(transpose(W3));
@@ -73,13 +70,13 @@ int main(){
 
 	// Start Gradient Descent
 	
-	cout << fixed << setprecision(7);
+	cout << fixed << setprecision(9);
 	
 	model.fit(
 	    Xt,Yt,
 	    epochs = 10,
-	    batch_size = 25000,
-//	    steps_per_epoch = 8,
+	    batch_size = 64,
+//	    steps_per_epoch = 3125,
 	    Shuffle = false
 	);
 
