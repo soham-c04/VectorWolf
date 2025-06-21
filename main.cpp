@@ -10,8 +10,9 @@ Data from source - https://github.com/HoomKh/Coffee-Roasting-Deeplearning/blob/m
 */
 
 int main(){
-	vector<vector<D>> X = read_csv("Kaggle/CoffeeRoasting/input.csv");
-	vector<vector<D>> Y = read_csv("Kaggle/CoffeeRoasting/output.csv");
+	vector<vector<D>> X = read_csv("Kaggle/CoffeeRoasting/input.csv", false);
+	vector<vector<D>> Y = read_csv("Kaggle/CoffeeRoasting/output.csv", false);
+	
 	shape(X);
 	shape(Y);
 	int m = X.size();
@@ -70,8 +71,6 @@ int main(){
 
 	// Start Gradient Descent
 	
-	cout << fixed << setprecision(9);
-	
 	model.fit(
 	    Xt,Yt,
 	    epochs = 10,
@@ -84,14 +83,7 @@ int main(){
 	
 	vector<D> Y_predict = model.predict(Xt);
 	
-	m = Yt.size();
-	D accuracy = 0;
-	for(int i=0;i<m;i++)
-		if((Y_predict[i] >= 0.5) == Yt[i])
-			accuracy += 100;
-			
-	accuracy /= m;
-	cout << "\nAccuracy: "<< accuracy << endl << endl;
+	metrics.classification_metrics(Yt, Y_predict);
 
 	return 0;
 }

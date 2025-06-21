@@ -1,7 +1,4 @@
 #include "VectorWolf.h"
-#include <math.h>
-#include <fstream>
-#include <sstream>
 using namespace std;
 
 string lower_case(const string &s){
@@ -32,9 +29,17 @@ void print_top(int width){
 	cout<<TOP_LEFT;
 	for(int c=0;c<width;c++) cout<<HORIZ;
 	cout<<TOP_RIGHT<<"\n";
+	if(width == SCREEN_WIDTH){
+		string line;
+		print(line = "");
+	}
 }
 
 void print_bottom(int width){
+	if(width == SCREEN_WIDTH){
+		string line;
+		print(line = "");
+	}
 	cout<<BOTTOM_LEFT;
 	for(int c=0;c<width;c++) cout<<HORIZ;
 	cout<<BOTTOM_RIGHT<<endl;
@@ -84,6 +89,249 @@ vector<vector<D>> multiply(vector<vector<D>> &a, vector<vector<D>> &b){
 	return ans;
 }
 
+// class Metrics
+
+// Error metrics for classification
+D Metric::accuracy(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Accuracy");
+	
+		print_top();
+	}
+	
+	int m = y_true.size();
+	D accuracy = 0;
+	for(int i=0;i<m;i++)
+		if((y_pred[i] >= 0.5) == (y_true[i] >= 0.5))
+			accuracy += 100;
+
+	accuracy /= m;
+	
+	if(print_){
+		string line = to_string(accuracy) + " %";
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+	
+	return accuracy;
+}
+
+D Metric::recall(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Recall");
+
+		print_top();
+	}
+
+	int m = y_true.size(), total_true_positive = 0;
+	D recall = 0;
+	for(int i=0;i<m;i++){
+		if(y_true[i] >= 0.5){
+			total_true_positive++;
+			if(y_pred[i] >= 0.5)
+				recall += 100;
+		}
+	}
+
+	recall /= total_true_positive;
+
+	if(print_){
+		string line = to_string(recall) + " %";
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+	
+	return recall;
+}
+
+D Metric::precision(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Precision");
+
+		print_top();
+	}
+
+	int m = y_true.size(), total_pred_positive = 0;
+	D precision = 0;
+	for(int i=0;i<m;i++){
+		if(y_pred[i] >= 0.5){
+			total_pred_positive++;
+			if(y_true[i] >= 0.5)
+				precision += 100;
+		}
+	}
+
+	precision /= total_pred_positive;
+
+	if(print_){
+		string line = to_string(precision) + " %";
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+	
+	return precision;
+}
+
+D Metric::f1_score(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("F1-score");
+
+		print_top();
+	}
+
+	int m = y_true.size(), denominator = 0;
+	D f1_score = 0; // f1_score = 2/(1/recall(y_true, y_pred, false) + 1/precision(y_true, y_pred, false));
+	for(int i=0;i<m;i++){
+		if(y_true[i] >= 0.5){
+			denominator++;
+			if(y_pred[i] >= 0.5){
+				denominator++;
+				f1_score += 200;
+			}
+		}
+		else if(y_pred[i] >= 0.5)
+			denominator++;
+	}
+
+	f1_score /= denominator;
+
+	if(print_){
+		string line = to_string(f1_score);
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+
+	return f1_score;
+}
+
+void Metric::classification_metrics(vector<D> &y_true, vector<D> &y_pred){
+	cout<<endl;
+	print_header("Classification Metrics");
+
+	print_top();
+
+	int m = y_true.size(), total_true_positive = 0, total_pred_positive = 0;
+	D accuracy = 0, true_positive = 0;
+	for(int i=0;i<m;i++){
+		if(y_true[i] >= 0.5){
+			total_true_positive++;
+			if(y_pred[i] >= 0.5){
+				total_pred_positive++;
+				accuracy += 100;
+				true_positive += 100;
+			}
+		}
+		else{
+			if(y_pred[i] >= 0.5)
+				total_pred_positive++;
+			else
+				accuracy += 100;
+		}
+	}
+
+	accuracy /= m;
+	
+	D recall = true_positive/total_true_positive, precision = true_positive/total_pred_positive;
+	D f1_score = 2*true_positive/(total_pred_positive + total_true_positive);
+	
+	string line;
+	print(line = "Accuracy  = " + to_string(accuracy) + " %");
+	print(line = "");
+	print(line = "Recall    = " + to_string(recall) + " %");
+	print(line = "");
+	print(line = "Precision = " + to_string(precision) + " %");
+	print(line = "");
+	print(line = "F1-score  = " + to_string(f1_score));
+
+	print_bottom();
+	cout<<endl;
+}
+
+// Error metrics for regression
+D Metric::mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Mean Absolute Error");
+
+		print_top();
+	}
+
+	int m = y_true.size();
+	D mae = 0;
+	for(int i=0;i<m;i++)
+		mae = abs(y_true[i] - y_pred[i]);
+	mae /= m;
+
+	if(print_){
+		string line = to_string(mae);
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+
+	return mae;
+}
+D Metric::mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Mean Squared Error");
+
+		print_top();
+	}
+
+	int m = y_true.size();
+	D mse = 0;
+	for(int i=0;i<m;i++)
+		mse = (y_true[i] - y_pred[i])*(y_true[i] - y_pred[i]);
+	mse /= m;
+
+	if(print_){
+		string line = to_string(mse);
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+
+	return mse;
+}
+D Metric::root_mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Root Mean Squared Error");
+
+		print_top();
+	}
+
+	D rmse = sqrtl(mean_squared_error(y_true, y_pred, false));
+
+	if(print_){
+		string line = to_string(rmse);
+		print(line);
+
+		print_bottom();
+		cout<<endl;
+	}
+
+	return rmse;
+}
+//D (vector<D> &y_true, vector<D> &y_pred, bool print_);
+
+Metric metrics;
+
 // class Activation
 
 D Activation::linear(const D &t){
@@ -115,7 +363,7 @@ D Activation::deriv_sigmoid(const D &t){
 
 // class Loss
 
-D Loss::MeanSquaredError(vector<D> &y,vector<D> &a){
+D Loss::MeanSquaredError(vector<D> &y, vector<D> &a){
 	int m = y.size();
 	D loss=0;
 	for(int i=0;i<m;i++) loss+=(a[i]-y[i])*(a[i]-y[i]);
@@ -123,7 +371,7 @@ D Loss::MeanSquaredError(vector<D> &y,vector<D> &a){
 	return loss;
 }
 
-D Loss::BinaryCrossentropy(vector<D> &y,vector<D> &a){
+D Loss::BinaryCrossentropy(vector<D> &y, vector<D> &a){
 	int m = y.size();
 	D loss=0;
 	for(int i=0;i<m;i++){
@@ -508,25 +756,8 @@ void print(Model &m){
 	cout<<endl;
 }
 
-vector<vector<D>> read_csv(const string path){
-	ifstream file(path);
-    string line;
-
-    vector<vector<D>> data;
-
-    while (getline(file, line)) {
-        vector<D> row;
-        stringstream ss(line);
-        string value;
-
-        while (getline(ss,value,',')) row.push_back(stod(value));
-
-        data.push_back(row);
-    }
-
-    return data;
-}
-
+map<string,map<string,D>> dummy_replace;
+vector<string> null_values = {""};
 
 /*
 Use PCA to filter out unnecessary features to make computation faster ?
