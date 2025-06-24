@@ -1,15 +1,30 @@
 # VectorWolf
 **VectorWolf is (Tensor => Vector) + (reverse(Flow) => Wolf)**
 
-Syntax is almost the same as TensorFlow.
+Syntax is almost the same as TensorFlow. 
 
 Faster than TensorFlow for smaller batch sizes.
 
-### How to use
-- Write your code in main.cpp
-- Enter `./run.sh` command in linux based terminal to run the code, or use `./run.ps1` for Windows Powershell.
+| Time Comparison (in sec) | VectorWolf | TensorFlow |
+|----------|----------|----------|
+| House Price Prediction  | 5.259  | 85.520  |
+| Coffee Roasting  | 1.238  | 47.201  |
+
+## How to use
+- Write your code in `main.cpp`
 - main.cpp is given as an example to demonstrate its usage.
-- Ensure that VectorWolf.cpp, VectorWolf.h and main.cpp are in the same directory.
+- Ensure that relative locations of header (.cpp) files are located correctly w.r.t `main.cpp`.
+- This is meant to be used accompanying with python because visualisation and feature engineering is much easier on python.
+- Output processed data to .csv files and read them separately with VectorWolf.
+- Train the model in VectorWolf and then again write required data into .csv file then read it again with python for further checks.
+
+## Important Points
+- To change data type for calculation go to basic.h and change - ```using D = double``` to desired data_type.
+- Running on Windows Powershell is faster than running on WSL + Ubuntu. Running on DevCpp is much much faster (10x) than running on other terminals.
+- **.cpp** files are treated as header instead of **.h** files to get a perfomance boost (5x).
+- The dimensions of weight matrix is transpose of what is used on TensorFlow.
+- Go [here](https://github.com/soham-c04/VectorWolf/tree/main/Images) for images about Running and Output.
+- Losses in BinaryCrossentropy printed using VectorWolf are generally lower than TensorFlow even for the same set of weights and biases, because of inaccurate calculations due to capping at eps = 1e-15 (to prevent runtime errors). For e.g. this results in $-log(e^{-18})$ to become $-log(e^{-15})$, hence value changes from 18 to 15.
 
 ## Methods for Layer -
 ### 1. layers.Dense()
@@ -218,12 +233,5 @@ Faster than TensorFlow for smaller batch sizes.
   
   **Parameters**:-
   -  `vec` or `mat` or `layer` or `model`: Any one of the four (necessary).
-
-## Important Points
-- Losses in BinaryCrossentropy printed using VectorWolf are generally lower than TensorFlow even for the same set of weights and biases, because of inaccurate calculations due to capping at eps = 1e-15 (to prevent runtime errors). For e.g. this results in $-log(e^{-18})$ to become $-log(e^{-15})$, hence value changes from 18 to 15.
-- To change data type for calculation go to VectorWolf.h and change - ```using D = double``` to desired data_type.
-- Running on Windows Powershell is faster than running on WSL + Ubuntu.
-- The dimensions of weight matrix is transpose of what is used on TensorFlow.
-- Go [here](https://github.com/soham-c04/VectorWolf/tree/main/images) for images about Running and Output.
 
 
