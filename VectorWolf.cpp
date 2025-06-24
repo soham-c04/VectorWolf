@@ -1,94 +1,5 @@
 #include "VectorWolf.h"
-using namespace std;
-
-string lower_case(const string &s){
-	string low="";
-	for(char c:s) low.push_back(c|32);
-	return low;
-}
-
-void print(const vector<D> &vec){
-	string line = "      ";
-	for(D a:vec) line += to_string(a) + ' ';
-	print(line);
-}
-
-void print(const vector<vector<D>> &vec){
-	for(vector<D> v:vec) print(v);
-}
-
-void print(string &line, int width){
-	int l = line.size();
-	cout<<VERT<<"  "<<line;
-	for(int p=0;p<width-l-2;p++) cout<<" ";
-	cout<<VERT<<"\n";
-	line.clear();
-}
-
-void print_top(int width){
-	cout<<TOP_LEFT;
-	for(int c=0;c<width;c++) cout<<HORIZ;
-	cout<<TOP_RIGHT<<"\n";
-	if(width == SCREEN_WIDTH){
-		string line;
-		print(line = "");
-	}
-}
-
-void print_bottom(int width){
-	if(width == SCREEN_WIDTH){
-		string line;
-		print(line = "");
-	}
-	cout<<BOTTOM_LEFT;
-	for(int c=0;c<width;c++) cout<<HORIZ;
-	cout<<BOTTOM_RIGHT<<endl;
-}
-
-void print_header(string line){
-	int l = line.size();
-	print_top(l + 4);
-	print(line,l + 4);
-	print_bottom(l + 4);
-}
-
-void shape(vector<vector<D>> &M){
-	cout<<"\n(";
-	if(M.empty()) cout<<",";
-	else{
-		cout<<M.size()<<",";
-		if(M[0].size() != 0) cout<<M[0].size();
-	}
-	cout<<")"<<endl;
-}
-
-vector<vector<D>> transpose(vector<vector<D>> &M){
-	int n=M.size(),m=M[0].size();
-	vector<vector<D>> M_t(m,vector<D>(n));
-	for(int i=0;i<n;i++)
-		for(int j=0;j<m;j++)
-			M_t[j][i]=M[i][j];
-
-	return M_t;
-}
-
-vector<vector<D>> multiply(vector<vector<D>> &a, vector<vector<D>> &b){
-	int p = a.size(), q = a[0].size(), r = b[0].size();
-	vector<vector<D>> ans(p,vector<D>(r));
-
-	if(q != b.size()) cout<<"\nDimension mismatch.\n";
-	else{
-		for(int i=0;i<p;i++){
-			for(int j=0;j<r;j++){
-				D ans_ij = 0;
-				for(int k=0;k<q;k++) ans_ij += a[i][k]*b[k][j];
-				ans[i][j] = ans_ij;
-			}
-		}
-	}
-	return ans;
-}
-
+#include "Headers/basic.cpp"
 // class Metrics
 
 // Error metrics for classification
@@ -271,7 +182,7 @@ D Metric::mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_)
 	int m = y_true.size();
 	D mae = 0;
 	for(int i=0;i<m;i++)
-		mae = abs(y_true[i] - y_pred[i]);
+		mae += abs(y_true[i] - y_pred[i]);
 	mae /= m;
 
 	if(print_){
@@ -284,6 +195,7 @@ D Metric::mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_)
 
 	return mae;
 }
+
 D Metric::mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
 	if(print_){
 		cout<<endl;
@@ -295,7 +207,7 @@ D Metric::mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
 	int m = y_true.size();
 	D mse = 0;
 	for(int i=0;i<m;i++)
-		mse = (y_true[i] - y_pred[i])*(y_true[i] - y_pred[i]);
+		mse += (y_true[i] - y_pred[i])*(y_true[i] - y_pred[i]);
 	mse /= m;
 
 	if(print_){
@@ -308,6 +220,7 @@ D Metric::mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
 
 	return mse;
 }
+
 D Metric::root_mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
 	if(print_){
 		cout<<endl;
@@ -328,7 +241,6 @@ D Metric::root_mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool pri
 
 	return rmse;
 }
-//D (vector<D> &y_true, vector<D> &y_pred, bool print_);
 
 Metric metrics;
 
@@ -386,6 +298,22 @@ D Loss::BinaryCrossentropy(vector<D> &y, vector<D> &a){
 	return loss;
 }
 
+vector<vector<D>> glorot_uniform(int n,int m){ // Shape = (a,b)
+	D limit = sqrtl((D)6/(n+m));
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<D> rand_num(-limit, limit);
+
+    vector<vector<D>> weight(n,vector<D>(m));
+
+    for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++)
+			weight[i][j]=rand_num(gen);
+
+    return weight;
+}
+
 /*
 Syntax:-
 layers.Dense(
@@ -402,20 +330,6 @@ layers.Dense(
     name=None                   # Name of the layer
 )
 */
-
-vector<vector<D>> glorot_uniform(int n,int m){ // Shape = (a,b)
-	D limit = sqrtl(6/(n+m));
-
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<D> rand_num(-limit, limit);
-
-    vector<vector<D>> weight(n,vector<D>(m));
-
-    for(int i=0;i<n;i++) for(int j=0;j<m;j++) weight[i][j]=rand_num(gen);
-
-    return weight;
-}
 
 // Keyword arguments for layers.Dense()
 
@@ -561,7 +475,6 @@ Layer layers;
 Model::Model():layers(),Learning_rate(0),input_features(0){};
 
 void Model::add(Layer new_layer){
-
 	if(new_layer.get_units()>0) layers.push_back(new_layer);
 	else{
 		string line = "Layer should have at least 1 unit.";
@@ -579,7 +492,7 @@ Model Model::Sequential(int input_features_, vector<Layer> layers_){
 	string line;
 
 	// Box for keras.summary()
-	print_header("keras.Sequential()");
+	print_header("models.Sequential()");
 
 	// Box for output of keras.Sequential()
 	print_top();
@@ -640,25 +553,26 @@ double learning_rate = 0;
 // Keyword arguments for model.fit()
 
 int epochs = 0;
-int batch_size = 0;
+int batch_size = 32;
 int steps_per_epoch = 0;
 bool Shuffle = true;
+pair<vector<vector<D>>,vector<D>> validation_data;
 
 void reset_fit(){   // Resets global variable values
 	epochs = 0;
-	batch_size = 0;
+	batch_size = 32;
 	steps_per_epoch = 0;
 	Shuffle = true;
+	validation_data = {{},{}};
 }
 
-vector<D> Model::predict(const vector<vector<D>> x){
-	cout<<endl;
+vector<D> Model::predict(vector<vector<D>> x, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("model.predict");
 
-	// Box for model.predict()
-	print_header("model.predict()");
-
-	// Box for output of model.predict()
-	print_top();
+		print_top();
+	}
 
 	vector<vector<D>> output = x;
 	if(x[0].size()==input_features){
@@ -670,9 +584,34 @@ vector<D> Model::predict(const vector<vector<D>> x){
 		print(line);
 	}
 
-	print_bottom();
-	cout<<endl;
+	if(print_){
+		print_bottom();
+		cout<<endl;
+	}
+	
 	return output[0];
+}
+
+D Model::evaluate(vector<vector<D>> X_test, vector<D> y_test, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("model.evaluate");
+
+		print_top();
+	}
+
+	vector<D> prediction = predict(X_test, false);
+	D eval = loss_func(y_test, prediction);
+	
+	if(print_){
+		string line = to_string(eval);
+		print(line);
+		
+		print_bottom();
+		cout<<endl;
+	}
+	
+	return eval;
 }
 
 void Model::set_features(int input_features_){
@@ -704,7 +643,7 @@ vector<Layer> Model::get_layers(){
 	return layers;
 }
 
-Model keras;
+Model models;
 
 void print(Layer &l){
 	// Box for Header as layer name
@@ -756,14 +695,7 @@ void print(Model &m){
 	cout<<endl;
 }
 
-map<string,map<string,D>> dummy_replace;
-vector<string> null_values = {""};
-
 /*
 Use PCA to filter out unnecessary features to make computation faster ?
 Normalize mean + variance ?
-Initialize weights & biases as close to 1 to prevent vanishing / exploding gradients
-w_i = 1/m
-or choose https://www.youtube.com/watch?v=zUazLXZZA2U&list=PLoROMvodv4rMiGQp3WXShtMGgzqpfVfbU&index=12
-Timestamp: 1:02:00
 */

@@ -1,73 +1,39 @@
-#pragma GCC optimize("O3")
-#include <iostream>
-#include <vector>
-#include <string>
+#include "Headers/basic.cpp"
 #include <map>
 #include <algorithm>
-#include <cmath>
 #include <functional>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
 #include <chrono>
 #include <random>
-using namespace std;
-
-// For printing boxes
-#define VERT         (char)186
-#define HORIZ        (char)205
-#define TOP_LEFT     (char)201
-#define TOP_RIGHT    (char)187
-#define BOTTOM_LEFT  (char)200
-#define BOTTOM_RIGHT (char)188
-#define SCREEN_WIDTH 130
 
 // long double -- precision of 15-33 decimal places -- But Slower -- 8 to 16 bytes
 // double -- precision upto 15 decimal places -- Medium -- 8 bytes
 // float -- precision upto 6 decimal places -- Relatively fast -- 4 bytes
-using D = double;
 
-string lower_case(const string &s);
-
-void print(const vector<D> &vec);
-void print(const vector<vector<D>> &vec);
-void print(string &line, int width = SCREEN_WIDTH);
-void print_top(int width = SCREEN_WIDTH);
-void print_bottom(int width = SCREEN_WIDTH);
-void print_header(string line);
-
-void shape(vector<vector<D>> &M);
-
-vector<vector<D>> transpose(vector<vector<D>> &M);
-vector<vector<D>> multiply(vector<vector<D>> &a, vector<vector<D>> &b);
-
-class Metric{
-	public:
-		// Error metrics for classification
-		D accuracy(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		D recall(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		D precision(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		D f1_score(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		void classification_metrics(vector<D> &y_true, vector<D> &y_pred);
+struct Metric{
+	// Error metrics for classification
+	D accuracy(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	D recall(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	D precision(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	D f1_score(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	void classification_metrics(vector<D> &y_true, vector<D> &y_pred);
+	
+	// Error metrics for regression
+	D mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	D mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
+	D root_mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
 		
-		// Error metrics for regression
-		D mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		D mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-		D root_mean_squared_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
-//		D (vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
 };
 
 extern Metric metrics;
 
-class Activation{
-	public:
-		static D linear(const D &t);
-		static D ReLu(const D &t);
-		static D sigmoid(const D &t);
+struct Activation{
+	static D linear(const D &t);
+	static D ReLu(const D &t);
+	static D sigmoid(const D &t);
 
-		static D deriv_linear(const D &t);
-		static D deriv_ReLu(const D &t);
-		static D deriv_sigmoid(const D &t);
+	static D deriv_linear(const D &t);
+	static D deriv_ReLu(const D &t);
+	static D deriv_sigmoid(const D &t);
 };
 
 class Loss{ // Computes loss
@@ -134,6 +100,12 @@ class Layer : Activation{
 
 extern Layer layers;
 
+struct History{
+	vector<int> epoch;
+	map<string,vector<D>> history;
+	map<string,int> params;
+};
+
 // Keyword for model.Sequential()
 
 extern int input_param; // No. of features in input
@@ -149,6 +121,7 @@ extern int epochs;
 extern int batch_size;
 extern int steps_per_epoch;
 extern bool Shuffle;
+extern pair<vector<vector<D>>,vector<D>> validation_data;						// Used for computing cross_validation loss
 
 void reset_fit();
 
@@ -156,21 +129,21 @@ void reset_fit();
 class Model : Loss{
 	private:
 		// Fixed
-		const int print_width = 50;                                              // Printing dashed lines for summary()
+		const int print_width = 50;                                             // Printing dashed lines for summary()
 
 		// Given
 		string loss_name = "";
-		function<D(vector<D> &,vector<D> &)> loss_func;								 // Loss function used in the model
-		D Learning_rate;		                                                 // Learning_rate for gradient descent
-		int input_features;                                                      // Used for matching dimensions of input
-		vector<Layer> layers;	                                             	 // layers in the model
-
+		function<D(vector<D> &,vector<D> &)> loss_func;						    // Loss function used in the model
+		D Learning_rate;		                                                // Learning_rate for gradient descent
+		int input_features;                                                     // Used for matching dimensions of input
+		vector<Layer> layers;	                                             	// layers in the model
+		
 	public:
 		Model();
 
 		void add(Layer new_layer);
 
-		Model Sequential(int input_features_ = 0, vector<Layer> layers_={});		 // input_features = 0 to prevent any initialization
+		Model Sequential(int input_features_ = 0, vector<Layer> layers_={});	// input_features = 0 to prevent any initialization
 
 		void summary();
 
@@ -187,11 +160,11 @@ class Model : Loss{
 			loss_name = lower_case(loss);
 			Learning_rate = learning_rate;
 
-			if(loss_name == "meansquarederror"){
+			if(loss_name == "meansquarederror" || loss_name == "mse"){
 				loss_name = "MeanSquaredError";
 				loss_func = MeanSquaredError;
 			}
-			else if(loss_name == "binarycrossentropy"){
+			else if(loss_name == "binarycrossentropy" || loss_name == "bce"){
 				loss_name = "BinaryCrossentropy";
 				loss_func = BinaryCrossentropy;
 			}
@@ -211,8 +184,9 @@ class Model : Loss{
 		}
 
 		template<typename... Args>
-		void fit(vector<vector<D>> &x_train, vector<D> &y_train, Args&&...){
+		History fit(vector<vector<D>> &x_train, vector<D> &y_train, Args&&...){
 			cout<<endl;
+			History history;
 
 			string line;
 
@@ -225,13 +199,15 @@ class Model : Loss{
 			if(batch_size <= 0) batch_size = 32; 	// Default value
 			if(steps_per_epoch <= 0) steps_per_epoch = (x_train.size() + batch_size - 1)/batch_size; // Default value
 
+			// X_train and y_train compatibility
+
 			if(x_train.size() != y_train.size()){
 				line = "No. of samples in input and output matrix are different.";
 				print(line);
 				print_bottom();
 				cout<<endl;
 				reset_fit();
-				return;
+				return history;
 			}
 			else if(layers.back().get_units() != 1){
 				line = "Last layer of the model has to contain 1 unit only.";
@@ -239,7 +215,7 @@ class Model : Loss{
 				print_bottom();
 				cout<<endl;
 				reset_fit();
-				return;
+				return history;
 			}
 			else if(input_features != x_train[0].size()){
 				line = "Expected dimension - (," + to_string(input_features) + ",)";
@@ -249,12 +225,38 @@ class Model : Loss{
 				print_bottom();
 				cout<<endl;
 				reset_fit();
-				return;
+				return history;
 			}
 			else if(input_features == 0) input_features = x_train[0].size();
 
+			// Validation_data compatibility
+			if(!validation_data.first.empty()){
+				if(validation_data.first.size() != validation_data.second.size()){
+					line = "No. of samples in input and output validation_data are different.";
+					print(line);
+					print_bottom();
+					cout<<endl;
+					reset_fit();
+					return history;
+				}
+				else if(input_features != validation_data.first[0].size()){
+					line = "Expected input validation_data dimension - (," + to_string(input_features) + ",)";
+					print(line);
+					line = "Found - (," + to_string(validation_data.first[0].size()) + ",)";
+					print(line);
+					print_bottom();
+					cout<<endl;
+					reset_fit();
+					return history;
+				}
+			}
+
 			int l = layers.size();			// No. of layers
 			int m = y_train.size();         // No. of samples/inputs
+			
+			history.params["epochs"] = epochs;
+			history.params["steps"]  = steps_per_epoch;
+			vector<D> cur_loss_vec,val_loss_vec;
 
 			line = "Steps per epoch:-  " + to_string(steps_per_epoch);
 			print(line);
@@ -343,24 +345,51 @@ class Model : Loss{
 				}
 
 				cur_loss /= steps_per_epoch;
+				
+				cur_loss_vec.push_back(cur_loss);
+
+				// Calculating validation loss
+				D validation_loss = 0;
+				if(!validation_data.first.empty()){
+					vector<vector<D>> y_test_pred = transpose(validation_data.first);
+					for(int i=0;i<l;i++)
+						y_test_pred=layers[i](y_test_pred);
+
+					validation_loss = loss_func(validation_data.second,y_test_pred[0]);
+					
+					val_loss_vec.push_back(validation_loss);
+				}
+				
+				history.epoch.push_back(ep-1);
 
 			    auto t2=chrono::high_resolution_clock::now();
-				line = "Epochs = " + to_string(ep) + "/" + to_string(epochs) + "          Loss = " + to_string(cur_loss) +  "         Time for epoch = "
-					 + to_string(chrono::duration_cast<chrono::milliseconds>(t2 - t1).count()) + " ms ";
+				line = "Epochs = " + to_string(ep) + "/" + to_string(epochs) + "          loss = " + to_string(cur_loss);
+				if(!validation_data.first.empty())
+					line += "          val_loss = " + to_string(validation_loss);
+
+				line += "         Time for epoch = " + to_string(chrono::duration_cast<chrono::milliseconds>(t2 - t1).count()) + " ms ";
 				print(line);
 			}
+			
+			swap(history.history["loss"],cur_loss_vec);
+			if(!val_loss_vec.empty())
+				swap(history.history["val_loss"],val_loss_vec);
 
 			print(line = "");
 			auto end_time=chrono::high_resolution_clock::now();
-			line = "Total time = " + to_string(chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count()) + " ms ";
+			line = "Total time = " + to_string(chrono::duration_cast<chrono::microseconds>(end_time - start_time).count()/1e6) + " s ";
 			print(line);
 
 			print_bottom();
 			cout<<endl;
 			reset_fit();
+			
+			return history;
 		}
+		
+		vector<D> predict(vector<vector<D>> x, bool print = true);
 
-		vector<D> predict(const vector<vector<D>> x);
+		D evaluate(vector<vector<D>> X_test, vector<D> y_test, bool print_ = true);
 
 		void set_features(int input_features_);
 
@@ -369,139 +398,7 @@ class Model : Loss{
 		vector<Layer> get_layers();
 };
 
-extern Model keras;
+extern Model models;
 
 void print(Layer &l);
 void print(Model &m);
-
-// Keyword arguments for read_csv()
-
-/*
-dummy_replace is can be used to format .csv while reading
-by replacing certain strings of a certain header by a numeric.
-E.g before using read_csv() do:
-dummy_replace["Gender"]["male"] = 1;
-dummy_replace["Gender"]["female"] = 0;
-read_csv()
-
-This will replace male under Gender column with 1 and female by 0.
-If this is not done, "Gender" column will be ommitted to be used further in the model.
-NOTE:- Once a column is included in dummy_replace all its occurences (even if it is numeric) should be mentioned in dummy_replace.
-	   Otherwise, it is set to NAN, and can be later identified by - isnan(data[i][j])
-
-dummy_replace is cleared() after each read_csv use.
-*/
-
-extern map<string,map<string,D>> dummy_replace;
-extern vector<string> null_values; // Strings which are treated as NULL;
-
-template<typename... Args>
-vector<vector<D>> read_csv(const string path, bool header = true, Args&&...){
-	cout<<endl;
-	print_header("read_csv");
-
-	print_top();
-
-	ifstream file(path);
-    string line,value;
-
-    vector<vector<D>> data;             // Final output matrix
-	vector<string> headers;				// String of header for columns
-	vector<map<string,D>> replace;		// Efficient replace than using maps to identify column headers
-	vector<bool> numeric;    			// determines if a certain column is float or not
-	
-	if(header == true){
-		getline(file,line);
-        stringstream ss(line);
-
-		while(getline(ss, value, ',')){
-			headers.push_back(value);
-			replace.push_back(dummy_replace[value]);
-		}
-	}
-	
-		getline(file,line);
-	    stringstream ss(line);
-		vector<D> row;
-
-		for(int col=0; getline(ss, value, ','); col++){
-			if((header == true) && (!replace[col].empty())){
-				numeric.push_back(true);
-				if(replace[col].find(value) == replace[col].end())
-					row.push_back(NAN);
-				else
-					row.push_back(replace[col][value]);
-			}
-			else{
-				if(find(null_values.begin(), null_values.end(), value) == null_values.end()){
-					try{
-						row.push_back(stod(value));
-						numeric.push_back(true);
-					}
-					catch(const exception& e){
-						numeric.push_back(false);
-					}
-				}
-				else{
-					row.push_back(NAN);
-					numeric.push_back(true);
-				}
-			}
-		}
-
-		data.push_back(row);
-
-	if(header == false)
-		replace.resize(numeric.size(),dummy_replace["cjqnorvby"]);
-	
-    while(getline(file, line)){
-        stringstream ss(line);
-
-		for(int col=0,c=0; getline(ss, value, ','); col++){
-			if(numeric[col] == true){
-				if(replace[col].empty()){
-					if(find(null_values.begin(), null_values.end(), value) == null_values.end())
-						row[c++] = stod(value);
-					else
-						row[c++] = NAN;
-				}
-				else
-					row[c++] = replace[col][value];
-			}
-		}
-		
-		data.push_back(row);
-    }
-
-    print(line = "Included Columns respectively are:");
-    line = "[";
-    for(int i=0;i<headers.size();i++)
-    	if(numeric[i] == 1)
-			line += "'" + headers[i] + "',";
-	line.pop_back();
-	if(!line.empty()){
-		line.pop_back();
-		line.push_back(']');
-	}
-	print(line);
-	print(line = "");
-	print(line = "Discarded Columns are:");
-	line = "[";
-    for(int i=0;i<headers.size();i++)
-    	if(numeric[i] == 0)
-			line += "'" + headers[i] + "',";
-	line.pop_back();
-	if(!line.empty()){
-		line.pop_back();
-		line.push_back(']');
-	}
-	print(line);
-
-	print_bottom();
-	cout<<endl;
-
-	dummy_replace.clear();
-	null_values = {""};
-
-    return data;
-}
