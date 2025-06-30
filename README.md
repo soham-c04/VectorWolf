@@ -5,7 +5,7 @@ Syntax is almost the same as TensorFlow.
 
 Faster than TensorFlow for smaller batch sizes.
 
-| Time Comparison (in sec) | VectorWolf | TensorFlow |
+| Performance (in sec) | VectorWolf | TensorFlow |
 |----------|----------|----------|
 | House Price Prediction  | 5.259  | 85.520  |
 | Coffee Roasting  | 1.238  | 47.201  |
