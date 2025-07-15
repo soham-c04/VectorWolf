@@ -170,7 +170,47 @@ void Metric::classification_metrics(vector<D> &y_true, vector<D> &y_pred){
 	cout<<endl;
 }
 
+vector<vector<int>> Metric::confusion_matrix(vector<D> &y_true, vector<D> &y_pred, bool print_){
+	if(print_){
+		cout<<endl;
+		print_header("Confusion Matrix");
+
+		print_top();
+	}
+
+	int m = y_true.size();
+	
+	vector<vector<int>> conf_mat(2, vector<int>(2,0));
+	for(int i=0;i<m;i++){
+		if(y_true[i] >= 0.5){
+			if(y_pred[i] >= 0.5)
+				conf_mat[0][0]++;
+			else
+				conf_mat[1][0]++;
+		}
+		else{
+			if(y_pred[i] >= 0.5)
+				conf_mat[0][1]++;
+			else
+				conf_mat[1][1]++;
+		}
+	}
+
+	if(print_){
+		string line = to_string(conf_mat[0][0]) + "  " + to_string(conf_mat[0][1]);
+		print(line);
+		line = to_string(conf_mat[1][0]) + "  " + to_string(conf_mat[1][1]);
+		print(line);
+		
+		print_bottom();
+		cout<<endl;
+	}
+
+	return conf_mat;
+}
+
 // Error metrics for regression
+
 D Metric::mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_){
 	if(print_){
 		cout<<endl;
@@ -421,17 +461,17 @@ void Layer::element_wise_product(vector<vector<D>> &dJ_dz){
 			dJ_dz[i][j] *= deriv_act(z[i][j]);
 }
 
-void Layer::update_weights(vector<vector<D>> &dJ_dw){
+void Layer::update_weights(vector<vector<D>> &dJ_dw, double Learning_rate){
 	int p = weight.size(),q = weight[0].size();
 	for(int i=0;i<p;i++)
 		for(int j=0;j<q;j++)
-			weight[i][j] -= dJ_dw[i][j];
+			weight[i][j] -= Learning_rate*dJ_dw[i][j];
 }
 
-void Layer::update_bias(vector<D> &dJ_db){
+void Layer::update_bias(vector<D> &dJ_db, double Learning_rate){
 	int n = weight.size();
 	for(int i=0;i<n;i++)
-		bias[i] -= dJ_db[i];
+		bias[i] -= Learning_rate*dJ_db[i];
 }
 
 int Layer::info(int prev_units){
@@ -469,6 +509,58 @@ void Layer::set_bias(vector<D> new_bias){
 }
 
 Layer layers;
+
+// struct Callback
+
+void Callback::reset(){
+	monitor = "";
+	mode = "";
+	patience = 0;
+}
+
+Callback::Callback(string monitor_, string mode_, int patience_, string type_): Monitor(monitor_), Mode(mode_), Patience(patience_),
+																				best_epoch(0), cur_epoch(0), Type(type_){
+				
+	if(Monitor!="val_loss" && Monitor!="loss")
+		Monitor = "";
+
+	if(Mode != "min" && Mode != "max"){
+		if(Monitor=="val_loss" || Monitor=="loss")
+			Mode = "min";
+		else
+			Mode = "";
+	}
+
+	if(Mode == "min")
+		best_metric = 1e15;
+	else if(Mode == "max")
+		best_metric = -1e15;
+		
+	reset();
+}
+
+bool Callback::should_stop(D cur_metric){
+	if(Type != "EarlyStopping" || Monitor.empty())
+		return false;
+		
+	cur_epoch++;
+	if(Mode == "min"){
+		if(cur_metric < best_metric){
+			best_metric= cur_metric;
+			best_epoch = cur_epoch;
+			return false;
+		}
+	}
+	else if(Mode == "max"){
+		if(cur_metric > best_metric){
+			best_metric= cur_metric;
+			best_epoch = cur_epoch;
+			return false;
+		}
+	}
+
+	return (cur_epoch - best_epoch) > Patience;
+}
 
 // class Model
 
@@ -548,7 +640,11 @@ void Model::summary(){
 // Keyword arguments for model.compile()
 
 string loss = "";
-double learning_rate = 0;
+string optimizer = "";
+double learning_rate = 0.001;
+double beta_1 = 0.9, beta_2 = 0.999;
+double epsilon = 1e-7;
+
 
 // Keyword arguments for model.fit()
 
@@ -558,12 +654,20 @@ int steps_per_epoch = 0;
 bool Shuffle = true;
 pair<vector<vector<D>>,vector<D>> validation_data;
 
+// Early stop
+string monitor = "";
+string mode = "";
+int patience = 0;
+
+vector<Callback> callbacks;
+
 void reset_fit(){   // Resets global variable values
 	epochs = 0;
 	batch_size = 32;
 	steps_per_epoch = 0;
 	Shuffle = true;
 	validation_data = {{},{}};
+	callbacks.clear();
 }
 
 vector<D> Model::predict(vector<vector<D>> x, bool print_){

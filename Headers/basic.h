@@ -27,3 +27,7 @@ void shape(vector<vector<D>> &M);
 
 vector<vector<D>> transpose(vector<vector<D>> &M);
 vector<vector<D>> multiply(vector<vector<D>> &a, vector<vector<D>> &b);
+vector<vector<D>> multiply(vector<vector<D>> M, int c);
+vector<D> multiply(vector<D> M, int c);
+vector<vector<D>> hadamard_product(vector<vector<D>> a, vector<vector<D>> &b);
+vector<D> hadamard_product(vector<D> a, vector<D> &b);

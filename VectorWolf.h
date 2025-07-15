@@ -16,6 +16,7 @@ struct Metric{
 	D precision(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
 	D f1_score(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
 	void classification_metrics(vector<D> &y_true, vector<D> &y_pred);
+	vector<vector<int>> confusion_matrix(vector<D> &y_true, vector<D> &y_pred, bool _print = true);
 	
 	// Error metrics for regression
 	D mean_absolute_error(vector<D> &y_true, vector<D> &y_pred, bool print_ = true);
@@ -77,9 +78,9 @@ class Layer : Activation{
 
 		void element_wise_product(vector<vector<D>> &dJ_dz);
 
-		void update_weights(vector<vector<D>> &dJ_dw);
+		void update_weights(vector<vector<D>> &dJ_dw, double Learning_rate);
 
-		void update_bias(vector<D> &dJ_db);
+		void update_bias(vector<D> &dJ_db, double Learning_rate);
 
 		int info(int prev_units);
 
@@ -100,6 +101,34 @@ class Layer : Activation{
 
 extern Layer layers;
 
+extern string monitor;
+extern string mode;
+extern int patience;
+
+class Callback{
+	private:
+		string Mode;
+		int Patience;
+		D best_metric;
+		int best_epoch;
+		int cur_epoch;
+		string Type;
+
+		void reset();
+
+		Callback(string monitor_, string mode_, int patience_, string type_);
+		
+	public:
+		string Monitor;
+	
+		template<typename... Args>
+		static Callback EarlyStopping(Args&&...){
+			return Callback(lower_case(monitor), lower_case(mode), patience, "EarlyStopping");
+		}
+
+		bool should_stop(D cur_metric);
+};
+
 struct History{
 	vector<int> epoch;
 	map<string,vector<D>> history;
@@ -113,7 +142,9 @@ extern int input_param; // No. of features in input
 // Keyword arguments for model.compile()
 
 extern string loss;
-extern double learning_rate;
+extern string optimizer;
+extern double learning_rate, beta_1, beta_2;
+extern double epsilon;
 
 // Keyword arguments for model.fit()
 
@@ -122,6 +153,7 @@ extern int batch_size;
 extern int steps_per_epoch;
 extern bool Shuffle;
 extern pair<vector<vector<D>>,vector<D>> validation_data;						// Used for computing cross_validation loss
+extern vector<Callback> callbacks;
 
 void reset_fit();
 
@@ -134,7 +166,10 @@ class Model : Loss{
 		// Given
 		string loss_name = "";
 		function<D(vector<D> &,vector<D> &)> loss_func;						    // Loss function used in the model
-		D Learning_rate;		                                                // Learning_rate for gradient descent
+		string Optimizer;                                                       // name of optimizer
+		double Learning_rate;		                                            // Learning_rate for gradient descent
+		double Beta_1, Beta_2;                                                  // hyperparameters
+		double Epsilon;                                                         // Numerical stability
 		int input_features;                                                     // Used for matching dimensions of input
 		vector<Layer> layers;	                                             	// layers in the model
 		
@@ -159,6 +194,9 @@ class Model : Loss{
 
 			loss_name = lower_case(loss);
 			Learning_rate = learning_rate;
+			Beta_1 = beta_1;
+			Beta_2 = beta_2;
+			Epsilon = epsilon;
 
 			if(loss_name == "meansquarederror" || loss_name == "mse"){
 				loss_name = "MeanSquaredError";
@@ -175,12 +213,20 @@ class Model : Loss{
 				loss_name = "MeanSquaredError";
 				loss_func = MeanSquaredError;
 			}
+			
+			Optimizer = lower_case(optimizer);
+			if(Optimizer != "adam")
+				Optimizer = "sgd";
 
 			print_bottom();
 			cout<<endl;
 
 			loss = "";
-			learning_rate = 0;
+			optimizer = "";
+			learning_rate = 0.001;
+			beta_1 = 0.9;
+			beta_2 = 0.999;
+			epsilon = 1e-7;
 		}
 
 		template<typename... Args>
@@ -268,6 +314,10 @@ class Model : Loss{
 			for(int i=0;i<m;i++) permutation[i] = i;
 
 			auto start_time=chrono::high_resolution_clock::now();
+			
+			vector<vector<D>> m_w[l], v_w[l];
+			vector<D> m_b[l], v_b[l];
+			double Beta_1t = 1, Beta_2t = 1;
 
 			for(int ep=1;ep<=epochs;ep++){
 				// Generate a random permutation
@@ -275,7 +325,6 @@ class Model : Loss{
 
 			    D cur_loss = 0;
 			    int index = 0;  // The starting datapoint_index of a batch
-
 
    				auto t1=chrono::high_resolution_clock::now(); // Measures time per epoch
 			    for(int steps=1;steps<=steps_per_epoch;steps++){
@@ -303,8 +352,8 @@ class Model : Loss{
 
 					// dJ_dz for last layer
 					vector<D> v(m1);
-					for(int i=0;i<m1;i++)					  	// Dividing by m so that we don't have do this in further steps
-						v[i] = (a_l[i]-Yt[i])*Learning_rate/m1; // Multiplying by Learning_rate because we have to multiply before update later on.
+					for(int i=0;i<m1;i++)					  
+						v[i] = (a_l[i]-Yt[i])/m1;   // Dividing by m1 so that we don't have to do it in later steps
 					dJ_dz = {v};
 
 					if(loss_name == "BinaryCrossentropy"){
@@ -318,6 +367,11 @@ class Model : Loss{
 						layers[l-1].element_wise_product(dJ_dz);
 					}
 
+					if(Optimizer == "adam"){
+						Beta_1t *= Beta_1;
+						Beta_2t *= Beta_2;
+					}
+					
 					// Backprop derivative calculation
 					for(int i=l-1;i>=0;i--){
 						vector<vector<D>> a_T = transpose(a[i]);
@@ -337,8 +391,34 @@ class Model : Loss{
 							layers[i-1].element_wise_product(dJ_dz);
 						}
 
-						layers[i].update_weights(dJ_dw);
-						layers[i].update_bias(dJ_db);
+						if(Optimizer == "adam"){
+							int n = dJ_dw.size(), m = dJ_dw[0].size();
+							if(m_b[i].empty()){
+								m_w[i] = multiply(dJ_dw, 1-Beta_1);
+								v_w[i] = multiply(hadamard_product(dJ_dw,dJ_dw), 1-Beta_2);
+								m_b[i] = multiply(dJ_db, 1-Beta_1);
+								v_b[i] = multiply(hadamard_product(dJ_db,dJ_db), 1-Beta_2);
+							}
+							else{
+								for(int p=0;p<n;p++){
+									for(int q=0;q<m;q++){
+										m_w[i][p][q] = Beta_1*m_w[i][p][q] + (1-Beta_1)*dJ_dw[p][q];
+										v_w[i][p][q] = Beta_2*v_w[i][p][q] + (1-Beta_2)*dJ_dw[p][q]*dJ_dw[p][q];
+									}
+									m_b[i][p] = Beta_1*m_b[i][p] + (1-Beta_1)*dJ_db[p];
+									v_b[i][p] = Beta_2*v_b[i][p] + (1-Beta_2)*dJ_db[p]*dJ_db[p];
+								}
+							}
+							
+							for(int p=0;p<n;p++){
+								for(int q=0;q<m;q++)
+									dJ_dw[p][q] = m_w[i][p][q]/((1-Beta_1t)*(sqrtl(v_w[i][p][q]/(1-Beta_2t))+Epsilon));
+								dJ_db[p] = m_b[i][p]/((1-Beta_1t)*(sqrtl(v_b[i][p]/(1-Beta_2t))+Epsilon));
+							}
+						}
+
+						layers[i].update_weights(dJ_dw, Learning_rate);
+						layers[i].update_bias(dJ_db, Learning_rate);
 
 					}
 
@@ -369,6 +449,28 @@ class Model : Loss{
 
 				line += "         Time for epoch = " + to_string(chrono::duration_cast<chrono::milliseconds>(t2 - t1).count()) + " ms ";
 				print(line);
+				
+				bool stop = false;
+				for(Callback &callback:callbacks){
+					if(callback.Monitor == "val_loss"){
+						if(callback.should_stop(validation_loss)){
+							print(line = "");
+							print(line = "Callback: Early Stopping due to val_loss");
+							stop = true;
+							break;
+						}
+					}
+					else if(callback.Monitor == "loss"){
+						if(callback.should_stop(cur_loss)){
+							print(line = "");
+							print(line = "Callback: Early Stopping due to loss");
+							stop = true;
+							break;
+						}
+					}
+				}
+				if(stop)
+					break;
 			}
 			
 			swap(history.history["loss"],cur_loss_vec);

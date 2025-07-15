@@ -3,7 +3,11 @@
 
 string lower_case(const string &s){
 	string low="";
-	for(char c:s) low.push_back(c|32);
+	for(char c:s){
+		if(c>='A' && c<='Z')
+			c|=32;
+		low.push_back(c);
+	}
 	return low;
 }
 
@@ -87,4 +91,42 @@ vector<vector<D>> multiply(vector<vector<D>> &a, vector<vector<D>> &b){
 		}
 	}
 	return ans;
+}
+
+vector<vector<D>> multiply(vector<vector<D>> M, int c){
+	for(vector<D> &vec:M)
+		for(D &x:vec)
+			x *= c;
+	return M;
+}
+
+vector<D> multiply(vector<D> M, int c){
+	for(D &x:M)
+		x *= c;
+	return M;
+}
+
+vector<vector<D>> hadamard_product(vector<vector<D>> a, vector<vector<D>> &b){
+	int n = a.size(), m = a[0].size();
+	if(b.size() != n || b[0].size() != m){
+		cout << "Element-wise product dimension mismatch" << endl;
+		return {{}};
+	}
+	
+	for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++)
+			a[i][j] *= b[i][j];
+	return a;
+}
+
+vector<D> hadamard_product(vector<D> a, vector<D> &b){
+	int n = a.size();
+	if(b.size() != n){
+		cout << "Element-wise product dimension mismatch" << endl;
+		return {};
+	}
+
+	for(int i=0;i<n;i++)
+		a[i] *= b[i];
+	return a;
 }
