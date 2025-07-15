@@ -7,8 +7,9 @@ Faster than TensorFlow for smaller batch sizes.
 
 | Performance (in sec) | VectorWolf | TensorFlow |
 |----------|----------|----------|
-| House Price Prediction  | 5.259  | 85.520  |
-| Coffee Roasting  | 1.238  | 47.201  |
+| Cancer Prediction | 2.226 | 10.115 |
+| Coffee Roasting | 1.238 | 47.201 |
+| House Price Prediction | 5.259 | 85.520 |
 
 ## How to use
 - Write your code in `main.cpp`
