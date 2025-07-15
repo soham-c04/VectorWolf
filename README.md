@@ -12,7 +12,7 @@ Faster than TensorFlow for smaller batch sizes.
 | [House Price](https://github.com/soham-c04/VectorWolf/blob/main/Images/HousePricePrediction/5.%20Train_time%20and%20predicting.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/HousePricePrediction/house-price-prediction.ipynb) | 5.259 | 85.520 |
 
 ## Table of Contents
-- [**How to use**](https://github.com/soham-c04/VectorWolf/main/README.md#how-to-use)
+- [**How to use**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#how-to-use)
 - [**Important Points**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#important-points)
 - **Metrics**
   - Classification
