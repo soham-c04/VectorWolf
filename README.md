@@ -7,9 +7,9 @@ Faster than TensorFlow for smaller batch sizes.
 
 | Performance (in sec) | VectorWolf | TensorFlow |
 |----------|----------|----------|
-| Cancer Prediction | 2.226 | 10.115 |
-| Coffee Roasting | 1.238 | 47.201 |
-| House Price Prediction | 5.259 | 85.520 |
+| [Cancer](https://github.com/soham-c04/VectorWolf/blob/main/Images/CancerPrediction/3.%20Training%20end%20by%20EarlyStopping.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CancerPrediction/cancer-prediction.ipynb) | 2.226 | 10.115 |
+| [Coffee](https://github.com/soham-c04/VectorWolf/blob/main/Images/CoffeeRoasting/3.%20Training%20the%20model.png) [Roasting](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CoffeeRoasting/coffee-roasting-tf.ipynb) | 1.238 | 47.201 |
+| [House Price](https://github.com/soham-c04/VectorWolf/blob/main/Images/HousePricePrediction/5.%20Train_time%20and%20predicting.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/HousePricePrediction/house-price-prediction.ipynb) | 5.259 | 85.520 |
 
 ## How to use
 - Write your code in `main.cpp`
