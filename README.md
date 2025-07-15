@@ -11,6 +11,68 @@ Faster than TensorFlow for smaller batch sizes.
 | [Coffee](https://github.com/soham-c04/VectorWolf/blob/main/Images/CoffeeRoasting/3.%20Training%20the%20model.png) [Roasting](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CoffeeRoasting/coffee-roasting-tf.ipynb) | 1.238 | 47.201 |
 | [House Price](https://github.com/soham-c04/VectorWolf/blob/main/Images/HousePricePrediction/5.%20Train_time%20and%20predicting.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/HousePricePrediction/house-price-prediction.ipynb) | 5.259 | 85.520 |
 
+## Table of Contents
+- [**How to use**](https://github.com/soham-c04/VectorWolf/edit/main/README.md#how-to-use)
+- [**Important Points**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#important-points)
+- **Metrics**
+  - Classification
+    - Accuracy
+    - Recall
+    - Precision
+    - F1 score
+    - Classification Metrics
+    - Confusion Matrix
+  - Regression
+    - Mean Absolute Error
+    - Mean Squared Error
+    - Root Mean Squared Error
+- **Activation functions**
+  - Linear
+  - ReLu
+  - Sigmoid
+- **Loss functions**
+  - Mean Squared Error
+  - Binary Cross Entropy
+- **Optimizers**
+  - SGD (Stochastic Gradient Descent)
+  - Adam (Adaptive Moment Estimation)
+- **Callbacks**
+  - EarlyStopping
+- **History**
+- [**Methods for Layer**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#methods-for-layer--)
+  - [Dense](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#1-layersdense)
+  - [operator](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-operator)
+  - [info](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-operator)
+  - [get_name](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#4-layerget_name)
+  - [set_name](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#5-layerset_name)
+  - get_units
+  - [get_weights](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#6-layerget_weights)
+  - [set_weights](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#7-layerset_weights)
+  - [get_bias](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#8-layerget_bias)
+  - [set_bias](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#9-layerset_bias)
+  - [activation_name](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#10-layeractivation_name)
+  - [print(layer)](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#11-printlayer)
+- [**Methods for Model**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#methods-for-model--)
+  - [Sequential](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#1-modelssequential)
+  - [add](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-modeladd)
+  - [summary](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#3-modelsummary)
+  - [compile](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#4-modelcompile)
+  - [fit](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#5-modelfit)
+  - [predict](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#6-modelpredict)
+  - evaluate
+  - set_features
+  - [get_layer](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#7-modelget_layer)
+  - [get_layers](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#8-modelget_layers)
+  - [print(model)](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#9-printmodel)
+- [**Other Methods**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#other-methods)
+  - [Read CSV](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#1-read_csv)
+  - Write CSV
+  - [Shape](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-shape)
+  - [Tranpose](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#3-transpose)
+  - [Multiply](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#4-multiply)
+  - Hadamard Product
+  - [Print](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#5-print)
+
 ## How to use
 - Write your code in `main.cpp`
 - main.cpp is given as an example to demonstrate its usage.
@@ -116,7 +178,7 @@ Faster than TensorFlow for smaller batch sizes.
   - `layer`: class Layer to be printed (necessary).
 
 ## Methods for Model -
-### 1. keras.Sequential();
+### 1. models.Sequential();
   **returns** -> `class Model`
   
   **Use**: Creating a model.
