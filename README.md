@@ -7,9 +7,9 @@ Faster than TensorFlow for smaller batch sizes.
 
 | Performance (in sec) | VectorWolf | TensorFlow |
 |----------|----------|----------|
-| [Cancer](https://github.com/soham-c04/VectorWolf/blob/main/Images/CancerPrediction/3.%20Training%20end%20by%20EarlyStopping.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CancerPrediction/cancer-prediction.ipynb) | 2.226 | 10.115 |
-| [Coffee](https://github.com/soham-c04/VectorWolf/blob/main/Images/CoffeeRoasting/3.%20Training%20the%20model.png) [Roasting](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CoffeeRoasting/coffee-roasting-tf.ipynb) | 1.238 | 47.201 |
-| [House Price](https://github.com/soham-c04/VectorWolf/blob/main/Images/HousePricePrediction/5.%20Train_time%20and%20predicting.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/HousePricePrediction/house-price-prediction.ipynb) | 5.259 | 85.520 |
+| [Cancer](https://github.com/soham-c04/VectorWolf/blob/main/Images/CancerPrediction/3.%20Training%20end%20by%20EarlyStopping.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CancerPrediction/cancer-prediction.ipynb) <br> Training Data = 426 $\times$ 30 <br> Batch size = 20, Epochs = 70 | 2.226 | 10.115 |
+| [Coffee](https://github.com/soham-c04/VectorWolf/blob/main/Images/CoffeeRoasting/3.%20Training%20the%20model.png) [Roasting](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/CoffeeRoasting/coffee-roasting-tf.ipynb) <br> Training Data = 200000 $\times$ 2 <br> Batch size = 64, Epochs = 10 | 1.238 | 47.201 |
+| [House Price](https://github.com/soham-c04/VectorWolf/blob/main/Images/HousePricePrediction/5.%20Train_time%20and%20predicting.png) [Prediction](https://github.com/soham-c04/VectorWolf/blob/main/Kaggle/HousePricePrediction/house-price-prediction.ipynb) <br> Training Data = 15117 $\times$ 19 <br> Batch size = 20, Epochs = 50 | 5.259 | 85.520 |
 
 ## Table of Contents
 - [**How to use**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#how-to-use)
