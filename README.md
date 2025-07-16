@@ -42,7 +42,7 @@ Faster than TensorFlow for smaller batch sizes.
 - [**Methods for Layer**](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#methods-for-layer--)
   - [Dense](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#1-layersdense)
   - [operator](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-operator)
-  - [info](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#2-operator)
+  - [info](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#3-info)
   - [get_name](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#4-layerget_name)
   - [set_name](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#5-layerset_name)
   - [get_units](https://github.com/soham-c04/VectorWolf?tab=readme-ov-file#6-layerget_units)
